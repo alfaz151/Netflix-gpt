@@ -3,17 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@tailwindcss/postcss": "^4.1.17",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^13.5.0",
+    "firebase": "^12.7.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "react-router-dom": "^7.11.0",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^6.30.2",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "parcel-start": "parcel public/index.html",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
@@ -38,6 +42,8 @@
     ]
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.19"
+    "@reduxjs/toolkit": "^2.11.2",
+    "parcel": "^2.16.3",
+    "tailwindcss": "^4.1.17"
   }
 }

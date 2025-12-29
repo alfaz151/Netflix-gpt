@@ -1,11 +1,26 @@
 import { useState, useRef } from "react";
 import Header from "./Header";
 import { validateEmail, validatePassword } from "../utils/validator";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
+import { auth } from "../utils/firebase";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { addUser } from "../utils/userSlice";
 
 const Login = () => {
+  const navigate = useNavigate();
+
   const [isSignForm, setIsSignForm] = useState(true);
   const [validateEmailMsg, setValidateEmailMsg] = useState("");
   const [validatePasswordMsg, setValidatePasswordMsg] = useState("");
+  const [validateFullnameMsg, setValidateFullnameMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const dispatch = useDispatch();
 
   const email = useRef(null);
   const password = useRef(null);
@@ -15,9 +30,65 @@ const Login = () => {
     setIsSignForm(!isSignForm);
   };
 
+  const handleSignIn = (email, password) => {
+    signInWithEmailAndPassword(auth, email, password)
+      .then(({ user }) => {
+        setErrorMsg("");
+        console.log(user);
+        navigate("/browse");
+      })
+      .catch((e) => {
+        console.log(e);
+        setErrorMsg(e.message);
+      });
+  };
+
+  const handleSignUp = (email, password, fullname) => {
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(({ user }) => {
+        setErrorMsg("");
+        console.log(user);
+        updateProfile(user, {
+          displayName: fullname
+        }).then(() => {
+          const { uid, email, displayName, accessToken } = auth.currentUser;
+          dispatch(addUser({
+            uid, email, displayName, accessToken
+          }))
+          navigate("/browse")
+        })
+      })
+      .catch((e) => {
+        console.log(e);
+        setErrorMsg(e.message);
+      });
+  };
+
   const handleSubmit = () => {
-    setValidateEmailMsg(validateEmail(email.current.value));
-    setValidatePasswordMsg(validatePassword(password.current.value));
+    const valEmailMsg = validateEmail(email.current.value);
+    const valPasswordMsg = validatePassword(password.current.value);
+
+    setValidateEmailMsg(valEmailMsg);
+    setValidatePasswordMsg(valPasswordMsg);
+
+    if (!isSignForm && !fullname) {
+      setValidateFullnameMsg("Field is required!");
+      return;
+    }
+
+    if (valEmailMsg || valPasswordMsg) {
+      return;
+    }
+
+    if (isSignForm) {
+      handleSignIn(email.current.value, password.current.value);
+    } else {
+      handleSignUp(
+        email.current.value,
+        password.current.value,
+        fullname.current.value
+      );
+    }
   };
 
   return (
@@ -38,12 +109,15 @@ const Login = () => {
           {isSignForm ? (
             ""
           ) : (
-            <input
-              ref={fullname}
-              className="m-2 p-2 rounded-lg bg-gray-700 "
-              type="text"
-              placeholder="Fullname"
-            ></input>
+            <>
+              <input
+                ref={fullname}
+                className="m-2 p-2 rounded-lg bg-gray-700 "
+                type="text"
+                placeholder="Fullname"
+              ></input>
+              <p className="text-xs px-2 text-red-500">{validateFullnameMsg}</p>
+            </>
           )}
           <input
             ref={email}
@@ -65,6 +139,7 @@ const Login = () => {
           >
             Sign in
           </button>
+          <p className="text-xs px-2 text-red-500">{errorMsg}</p>
           <p className="p-2 cursor-pointer" onClick={toggleSignInForm}>
             {isSignForm ? "New to Netflix? Sign Up" : "Already a user, Sign In"}
           </p>
