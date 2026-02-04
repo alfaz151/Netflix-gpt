@@ -7,18 +7,17 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { auth } from "../utils/firebase";
-import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { addUser } from "../utils/userSlice";
+import { HOME_PAGE_BG_IMG_URL } from "../utils/constants";
 
 const Login = () => {
-  const navigate = useNavigate();
-
   const [isSignForm, setIsSignForm] = useState(true);
   const [validateEmailMsg, setValidateEmailMsg] = useState("");
   const [validatePasswordMsg, setValidatePasswordMsg] = useState("");
   const [validateFullnameMsg, setValidateFullnameMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -35,7 +34,10 @@ const Login = () => {
       .then(({ user }) => {
         setErrorMsg("");
         console.log(user);
-        navigate("/browse");
+        const { uid, email, displayName, accessToken } = user;
+        dispatch(addUser({
+          uid, email, displayName, accessToken
+        }))
       })
       .catch((e) => {
         console.log(e);
@@ -55,7 +57,6 @@ const Login = () => {
           dispatch(addUser({
             uid, email, displayName, accessToken
           }))
-          navigate("/browse")
         })
       })
       .catch((e) => {
@@ -65,6 +66,7 @@ const Login = () => {
   };
 
   const handleSubmit = () => {
+    setLoading(true);
     const valEmailMsg = validateEmail(email.current.value);
     const valPasswordMsg = validatePassword(password.current.value);
 
@@ -95,7 +97,7 @@ const Login = () => {
     <div className="relative h-screen w-screen">
       <Header />
       <img
-        src="https://assets.nflxext.com/ffe/siteui/vlv3/6d631aa6-567d-46ef-a644-b5b00e4334d2/web/IN-en-20251215-TRIFECTA-perspective_f1cab02a-e42b-4913-a7d9-c5fe0f94f68d_large.jpg"
+        src={HOME_PAGE_BG_IMG_URL}
         alt="bg-img"
       />
       <div className="absolute inset-0 flex items-center justify-center">
@@ -137,7 +139,7 @@ const Login = () => {
             className="m-2 p-2 bg-red-500 rounded-lg "
             onClick={handleSubmit}
           >
-            Sign in
+            {!loading ? (isSignForm ? "Sign in" : "Sign up") : <><img className = "m-1 p-1" src="https://www.svgrepo.com/svg/423290/loading" alt="loading"/></> }
           </button>
           <p className="text-xs px-2 text-red-500">{errorMsg}</p>
           <p className="p-2 cursor-pointer" onClick={toggleSignInForm}>
